@@ -1,0 +1,6 @@
+# IDE Files
+.idea/
+tags
+
+# Output binary
+sshell
