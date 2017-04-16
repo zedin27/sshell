@@ -4,3 +4,9 @@ tags
 
 # Output binary
 sshell
+
+# Virtual Machine Env
+.vagrant
+
+# Log files
+*.log

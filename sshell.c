@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 /**
  * sshell is a shell similar to bash and zsh which can:
@@ -15,7 +16,7 @@
  */
 int main(int argc, char *argv[])
 {
-    char *cmd = "/usr/bin/date -u";
+    char *cmd = "/bin/date -u";
     int child_pid;
     child_pid = fork();
     printf("%d\n", child_pid);
