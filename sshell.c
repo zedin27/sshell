@@ -7,7 +7,7 @@
 #include <sys/types.h>
 
 // Function definitions
-void executeCommand(char **command);
+void executeCommand(char **command, char *commandString);
 void printStatusMessage(char *command, int exitcode);
 void printPrompt();
 
@@ -26,22 +26,46 @@ void printPrompt();
 int main(int argc, char *argv[])
 {
     // Buffer for user command input
-    char userInput[512];
     printPrompt();
 
-    while(scanf("%s", userInput) > 0) {
-        char *command[512] = {userInput, NULL};
-        executeCommand(command);
-    }
+    char userInput[512];
+    char userInputSplit[512];
+    char *command[16];
 
-    return 0;
+    while(1) {
+        fgets(userInput, 512, stdin);
+
+        // This will fill the rest of the buffer with null, removing any existing characters from previous iterations
+        int i = strlen(userInput) - 1;
+        while(i < 512) {
+            userInput[i++] = '\0';
+        }
+
+
+        // Parse the command by splitting on spaces
+        strcpy(userInputSplit, userInput);
+
+        char *arg = strtok(userInputSplit, " ");
+        i = 0;
+        while (arg != NULL) {
+            command[i++] = arg;
+            arg = strtok(NULL, " ");
+        }
+
+        // This will fill the rest of the buffer with null, removing any existing characters from previous iterations
+        while(i < 16) {
+            command[i++] = '\0';
+        }
+
+        executeCommand(command, userInput);
+    }
 }
 
 /**
  * Execute a command in a new child process and print a confirmation message to the console
  * @param command
  */
-void executeCommand(char **command)
+void executeCommand(char **command, char *commandString)
 {
     // Create a new child process to run the command
     int pid = fork();
@@ -59,7 +83,7 @@ void executeCommand(char **command)
     } else if(pid > 0) {
         // If code is running in the child process, wait for the command to finish
         wait(&pid);
-        printStatusMessage(command[0], WEXITSTATUS(pid));
+        printStatusMessage(commandString, WEXITSTATUS(pid));
     } else {
         // There has been an error with the fork
         perror("Error: internal system error");
