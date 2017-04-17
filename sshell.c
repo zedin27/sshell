@@ -10,6 +10,9 @@
 void executeCommand(char **command, char *commandString);
 void printStatusMessage(char *command, int exitcode);
 void printPrompt();
+int isBuiltin(char *command);
+void executeBuiltin(char **command, char *commandString);
+
 
 /**
  * sshell is a shell similar to bash and zsh which can:
@@ -41,7 +44,6 @@ int main(int argc, char *argv[])
             userInput[i++] = '\0';
         }
 
-
         // Parse the command by splitting on spaces
         strcpy(userInputSplit, userInput);
 
@@ -57,13 +59,16 @@ int main(int argc, char *argv[])
             command[i++] = '\0';
         }
 
-        executeCommand(command, userInput);
+        if(isBuiltin(command[0])) {
+            executeBuiltin(command, userInput);
+        } else {
+            executeCommand(command, userInput);
+        }
     }
 }
 
 /**
  * Execute a command in a new child process and print a confirmation message to the console
- * @param command
  */
 void executeCommand(char **command, char *commandString)
 {
@@ -86,7 +91,7 @@ void executeCommand(char **command, char *commandString)
         printStatusMessage(commandString, WEXITSTATUS(pid));
     } else {
         // There has been an error with the fork
-        perror("Error: internal system error");
+        fprintf(stderr, "Error: internal system error");
         exit(1);
     }
 
@@ -94,8 +99,7 @@ void executeCommand(char **command, char *commandString)
 }
 
 /**
- * Prints a status message to stderr indicating that command execution is finished
- * @param cmd
+ * Prints a status message to stderr indicating that command execution is finished=
  */
 void printStatusMessage(char *command, int exitcode)
 {
@@ -108,4 +112,43 @@ void printStatusMessage(char *command, int exitcode)
 void printPrompt()
 {
     fprintf(stdout, "sshell$ ");
+}
+
+/**
+ * Returns 1 if the given command is a shell builtin, 0 otherwise
+ */
+int isBuiltin(char *command)
+{
+    if (strcmp("exit", command) == 0) return 1;
+    if (strcmp("cd", command) == 0) return 1;
+    if (strcmp("pwd", command) == 0) return 1;
+    return 0;
+}
+
+/**
+ * Execute a builtin command
+ */
+void executeBuiltin(char **command, char *commandString)
+{
+    if(strcmp("exit", command[0]) == 0) {
+        fprintf(stderr, "Bye...");
+        exit(0);
+    } else if(strcmp("pwd", command[0]) == 0) {
+        char *dir = getcwd(NULL, 4096);
+        fprintf(stdout, "%s\n", dir);
+
+        printStatusMessage(commandString, 0);
+    } else if(strcmp("cd", command[0]) == 0) {
+        int status = chdir(command[1]);
+
+        if(status != 0) {
+            fprintf(stdout, "Error: no such directory\n");
+            printStatusMessage(commandString, 1);
+        } else {
+            printStatusMessage(commandString, 0);
+        }
+
+    }
+
+    printPrompt();
 }
