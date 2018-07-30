@@ -28,6 +28,8 @@ void executeBuiltin(char **command, char *commandString);
  */
 int main(int argc, char *argv[])
 {
+    (void)argc; //UNUSED variable, so casting it to the void to make it readable
+        
     // Buffer for user command input
     printPrompt();
 
